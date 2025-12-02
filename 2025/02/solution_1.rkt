@@ -48,14 +48,12 @@
 (define (is-invalid-id? id)
   (let* ([string-id (number->string id)]
          [l (string-length string-id)])
-    
     (define (repeat-append pattern n)
       (define (repeat-append-inner str n)
         (if (<= n 0)
             str
             (repeat-append-inner (string-append str pattern) (- n 1))))
       (repeat-append-inner "" n))
-    
     (define (check-pattern p)
       (cond
         [(> p (floor (/ l 2))) #f]
@@ -67,7 +65,6 @@
                #t
                (check-pattern (+ p 1))))] ; recurse
         [else (check-pattern (+ p 1))])) ; recurse if modulo fails
-
     (check-pattern 1)))
 
 
