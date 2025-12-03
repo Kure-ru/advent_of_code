@@ -1,58 +1,61 @@
 #lang racket
 
 (require racket/file
-     racket/list
-     racket/string)
+         racket/list
+         racket/string)
 
 ;; -------------------------
 ;; DATA STRUCTURES
 ;; -------------------------
 
-;; Direction: L or R
-;; Steps [0, 99]
 (define-struct click (direction distance) #:transparent)
-
-
-;; -------------------------
-;; READ & PARSE INPUT FILE
-;; -------------------------
-
-(define input-str (file->string "input.txt"))
-
-;; string -> Click
-;; convert a string input into a Click
-(define (input->click str)
-    (make-click (string-ref str 0)
-               (string->number (substring str 1))))
-
-;; string -> list of clicks
-(define clicks
-    (map input->click (string-split input-str "\n")))
+(define-struct state (pos zeros) #:transparent)
 
 ;; -------------------------
 ;; FUNCTIONS
 ;; -------------------------
 
-;; number list-of-clicks -> values (final-pos zero-count)
-;; Count the number of times the dial passes through 0
+;; String -> Click
+(define (parse-click str)
+  (make-click (string-ref str 0)
+              (string->number (substring str 1))))
+
+;; Number Char -> Number
+(define (step pos direction)
+  (define delta (if (char=? direction #\R) 1 -1))
+  (modulo (+ pos delta) 100))
+
+;; Number Click -> (listof Number)
+(define (click-path start c)
+  (define dir (click-direction c))
+  (define dist (click-distance c))
+  (define (next-pos n pos)
+    (if (zero? n)
+        '()
+        (let ([new-pos (step pos dir)])
+          (cons new-pos (next-pos (sub1 n) new-pos)))))
+  (next-pos dist start))
+
+;; Number (listof Click) -> State
 (define (count-zeros start clicks)
-  (for/fold ([pos start]
-             [zero-count 0])
-            ([c clicks])
-    (define dir (click-direction c))
-    (define dist (click-distance c))
-    (define step (if (char=? dir #\R) 1 -1))
-    ; list of intermediate positions dial passes during this click
-    (define path
-      (for/list ([i (in-range 1 (+ dist 1))])
-        (modulo (+ pos (* i step)) 100)))
-    (define new-zero-count (+ zero-count (length (filter (lambda (p) (= p 0)) path))))
-    (values (last path) new-zero-count)))
+  (foldl
+   (λ (c st)
+     (define pos   (state-pos st))
+     (define zeros (state-zeros st))
+     (define path  (click-path pos c))
+     (make-state (last path)
+                 (+ zeros (length (filter zero? path)))))
+   (make-state start 0)
+   clicks))
 
 ;; -------------------------
 ;; EXECUTION
 ;; -------------------------
-(define-values (final-pos zeros) (count-zeros 50 clicks))
 
-(displayln (format "Final position: ~a" final-pos))
-(displayln (format "Times passed 0: ~a" zeros))
+(define clicks
+  (map parse-click (string-split (file->string "input.txt") "\n")))
+
+(define st (count-zeros 50 clicks))
+
+(displayln (format "Final position: ~a" (state-pos st)))
+(displayln (format "Times passed 0: ~a" (state-zeros st)))
