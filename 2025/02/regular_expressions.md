@@ -75,9 +75,11 @@ We just let the regex engine do it.
    ```
 
 4. Filter and sum
+   ```lisp
    (for/sum ([n all-ids]
    #:when (regexp-match? repeated-at-least2 (number->string n)))
    n)
+   ```
 
 ## Pros of Using Regex
 
