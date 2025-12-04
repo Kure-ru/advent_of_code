@@ -34,7 +34,7 @@
 ;;  - "(.+)" captures some substring X
 ;;  - "\\1" requires the exact same substring again
 ;;  - ^ and $ enforce that the whole string is exactly X X
-(define repeated-twice-regex.         #px"^(.+)\\1$")
+(define repeated-twice-regex         #px"^(.+)\\1$")
 (define repeated-at-least-twice-regex #px"^(.+)\\1+$")
 
 (define (is-invalid-id? id)
